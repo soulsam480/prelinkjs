@@ -2,12 +2,16 @@ const express = require("express");
 const cheerio = require("cheerio");
 var fetch = require("node-fetch");
 var url = require("url");
+const cors = require("cors");
 const app = express();
+const router = express.Router();
+const port = process.env.PORT || 3000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-const router = express.Router();
+app.use(cors());
 app.use("/get-preview", router);
-const port = process.env.PORT || 3000;
+
 router.get("/", async (req, res) => {
   const previewUrl = req.query.url;
   console.log(previewUrl);
@@ -29,11 +33,16 @@ router.get("/", async (req, res) => {
     );
   };
   const metaTagData = {
-    url: previewUrl,
-    domain: url.parse(previewUrl).hostname,
-    title: getMetaTag("title") || $(`h1`).text(),
-    img: getMetaTag("image") || "./images/no-image.png",
-    description: getMetaTag("description") || $(`p`).text(),
+    success: 1,
+    meta: {
+      title: getMetaTag("title") || $(`h1`).text(),
+      description: getMetaTag("description") || $(`p`).text(),
+      image: {
+        url: getMetaTag("image") || "./images/no-image.png",
+      },
+      link: previewUrl,
+      domain: url.parse(previewUrl).hostname,
+    },
   };
   res.send(metaTagData);
 });
